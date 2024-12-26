@@ -1,50 +1,54 @@
 import express from "express";
+import dotenv from "dotenv";
+
 import {fetchTimeEditData} from './timeedit.js';
-import {postToCanvas} from './canvas.js';
+import {createEvent} from './canvas.js';
 
 const app = express();
-const PORT = 3001;
+
+dotenv.config();
+
+const PORT = process.env.PORT;
+const token = process.env.TOKEN;
 
 app.use(express.json());
 
 app.get('/api/timeedit', async (req, res) => {
     try {
         const data = await fetchTimeEditData();
-
-        // Timeedit returnerar duplicerade värden för kurskod/namn
-        // den här funktionen tar bort duplicerade värden
-        const cleanedReservations = data.reservations.map(reservation => ({
-            ...reservation,
-            columns: reservation.columns.map(cell => {
-                if (typeof cell === 'string' && cell.includes(',')) {
-                    const uniqueValues = Array.from(new Set(cell.split(',').map(val => val.trim())));
-                    return uniqueValues.join(', ');
-                }
-                return cell;
-            }),
-        }));
-
-        // samma sak för vissa kolumnrubriker
-        const cleanedColumnHeaders = data.columnheaders.map(header => {
-            if (header.includes(',')) {
-                const uniqueValues = Array.from(new Set(header.split(',').map(val => val.trim())));
-                return uniqueValues.join(', ');
-            }
-            return header;
-        });
-
-        data.columnheaders = cleanedColumnHeaders;
-
-        res.json({ ...data, reservations: cleanedReservations, columnheaders: cleanedColumnHeaders });
+        res.json(data);
     } catch (error) {
         console.error('Error fetching TimeEdit data:', error);
         res.status(500).json({ error: 'Failed to fetch TimeEdit data' });
     }
 });
 
-app.post('/canvas', async (req, res) => {
-    const result = await postToCanvas(req.body);
-    res.json(result);
+app.post('/api/canvas', async (req, res) => {
+    try {
+        const { context_code, title, description, start_at, end_at, location_name } = req.body;
+
+        if (!context_code || !title || !start_at || !end_at) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        const eventData = {
+            context_code,
+            title,
+            description,
+            start_at,
+            end_at,
+            location_name
+        };
+
+        const createdEvent = await createEvent(eventData, token);
+
+        res.status(201).json({
+            message: 'Event created successfully',
+            event: createdEvent
+        });
+    } catch (error) {
+        console.error('Server Error:', error);
+        res.status(500).json({ error: 'Failed to create Canvas event', details: error.message });
+    }
 });
 
 app.listen(PORT, () => {
