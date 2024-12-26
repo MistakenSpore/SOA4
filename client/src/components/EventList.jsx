@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import './EventList.css';
 
 export default function EventList() {
-  const [events, setEvents] = useState([]); // event objektet håller alla värden som hämtas från TimeEdit
-  const [columnHeaders, setColumnHeaders] = useState([]); // columnHeaders håller alla rubriker som hämtas från TimeEdit
+  const [events, setEvents] = useState([]); // one event is a single reservation/kalenderhändelse
+  const [columnHeaders, setColumnHeaders] = useState([]);
   const [expandedEvents, setExpandedEvents] = useState(new Set());
   const [editingEvent, setEditingEvent] = useState(null);
   const [creatingEvent, setCreatingEvent] = useState(null);
@@ -40,6 +40,7 @@ export default function EventList() {
   };
 
   const createEvent = async (eventId) => {
+    setCreatingEvent(eventId); // disables the create button while createEvent is running
     try {
       const event = events.find((e) => e.id === eventId);
       if (!event) {
@@ -53,8 +54,7 @@ export default function EventList() {
       const title = editedEvent[columnHeaders.indexOf('Aktivitet')] || event.columns[columnHeaders.indexOf('Aktivitet')] || '';
       const location = editedEvent[columnHeaders.indexOf('Plats, Lokal')] || event.columns[columnHeaders.indexOf('Plats, Lokal')] || '';
 
-      // Generate a formatted description from all column data
-      // This block maps column headers and their respective values to create an HTML-formatted description string.
+      // Generate a formatted description from all column data available
       const description = columnHeaders.map((header, index) => {
         const value = editedEvent[index] || event.columns[index];
         if (!value) return null; // Skip field altogether if no value is present
@@ -62,7 +62,7 @@ export default function EventList() {
       }).filter(Boolean).join('<br>'); // Filter out null values and join with line breaks between each header-value pair
 
       const canvasEvent = {
-        context_code: 'user_136612',
+        context_code: 'user_136612', // Simon user id, course arg unauthorized
         title: title,
         start_at: `${event.startdate}T${event.starttime}:00Z`,
         end_at: `${event.startdate}T${event.endtime}:00Z`,
@@ -170,7 +170,7 @@ export default function EventList() {
                     onClick={() => createEvent(event.id)}
                     disabled={creatingEvent === event.id}
                   >
-                    {creatingEvent === event.id ? 'Creating...' : 'Skapa händelse'}
+                    {creatingEvent === event.id ? 'Skapar...' : 'Skapa händelse'}
                   </button>
                 )}
               </div>

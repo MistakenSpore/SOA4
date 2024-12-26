@@ -1,8 +1,0 @@
-.table {
-    width: 100vw;
-    height: auto;
-    max-height: 100vh;
-    overflow: auto;
-    box-sizing: border-box;
-    padding: 16px;
-}

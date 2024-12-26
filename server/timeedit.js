@@ -29,6 +29,10 @@ export const fetchTimeEditData = async () => {
     }),
   }));
 
+  // The columnheaders array is iterated and processed
+  // If a header contains a comma (,), it is split into parts, and extra spaces are trimmed.
+  // If all parts are identical, only the first value is returned.
+  // If parts differ, unique values are determined using new Set() and joined back into a single string.
   const cleanedColumnHeaders = data.columnheaders.map(header => {
     if (header.includes(',')) {
       const uniqueValues = Array.from(new Set(header.split(',').map(val => val.trim())));
@@ -43,5 +47,3 @@ export const fetchTimeEditData = async () => {
     columnheaders: cleanedColumnHeaders
   };
 };
-
-fetchTimeEditData()
