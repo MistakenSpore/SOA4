@@ -7,12 +7,8 @@ export const fetchTimeEditData = async () => {
   }
   const data = await response.json();
 
-  /*The reservations array is iterated, and each reservation is processed
-    The columns array of each reservation is mapped
-    If a cell contains a comma (,), it is split into parts, and extra spaces are trimmed.
-    If all parts are identical, only the first value is returned.
-    If parts differ, unique values are determined using new Set() and joined back into a single string.
-    If no comma exists, the cell is returned unchanged */
+  // sometimes the data from TimeEdit contains duplicate values in fields
+  // this function removes such duplicates
   const cleanedReservations = data.reservations.map(reservation => ({
     ...reservation,
     columns: reservation.columns.map(cell => {
@@ -29,10 +25,8 @@ export const fetchTimeEditData = async () => {
     }),
   }));
 
-  // The columnheaders array is iterated and processed
-  // If a header contains a comma (,), it is split into parts, and extra spaces are trimmed.
-  // If all parts are identical, only the first value is returned.
-  // If parts differ, unique values are determined using new Set() and joined back into a single string.
+  // sometimes the column headers contain duplicate values
+  // this function removes such duplicates
   const cleanedColumnHeaders = data.columnheaders.map(header => {
     if (header.includes(',')) {
       const uniqueValues = Array.from(new Set(header.split(',').map(val => val.trim())));

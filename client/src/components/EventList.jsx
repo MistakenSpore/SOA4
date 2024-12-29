@@ -35,7 +35,6 @@ export default function EventList() {
   };
 
   const getEventValue = (event, fieldIndex) => {
-    // Prioritize edited values, fall back to original
     return editedValues[event.id]?.[fieldIndex] || event.columns[fieldIndex] || '';
   };
 
@@ -48,21 +47,21 @@ export default function EventList() {
         return;
       }
 
-      // Use edited values if available, fallback to original values
       // activity seems to be the most fitting for title
       const editedEvent = editedValues[eventId] || {};
       const title = editedEvent[columnHeaders.indexOf('Aktivitet')] || event.columns[columnHeaders.indexOf('Aktivitet')] || '';
       const location = editedEvent[columnHeaders.indexOf('Plats, Lokal')] || event.columns[columnHeaders.indexOf('Plats, Lokal')] || '';
 
-      // Generate a formatted description from all column data available
+      // calendar uses html formatting
+      // only title, date/time and location are preset for events, rest goes into desc.
       const description = columnHeaders.map((header, index) => {
         const value = editedEvent[index] || event.columns[index];
         if (!value) return null; // Skip field altogether if no value is present
-        return `<strong>${header}:</strong> ${value || ''}`; // Format as HTML
+        return `<strong>${header}:</strong> ${value || ''}`;
       }).filter(Boolean).join('<br>'); // Filter out null values and join with line breaks between each header-value pair
 
       const canvasEvent = {
-        context_code: 'user_136612', // Simon user id, course arg unauthorized
+        context_code: 'user_136612',
         title: title,
         start_at: `${event.startdate}T${event.starttime}:00Z`,
         end_at: `${event.startdate}T${event.endtime}:00Z`,
@@ -80,8 +79,8 @@ export default function EventList() {
       });
 
       if (!response.ok) {
-        console.error('Failed to create event in Canvas:', response);
-        throw new Error('Failed to create event in Canvas');
+        const errorData = await response.json();
+        console.error('Canvas API Error:', errorData);
       }
 
       alert('Event created successfully');
@@ -89,18 +88,17 @@ export default function EventList() {
       console.error('Error creating event:', error);
       alert('Failed to create event');
     } finally {
-      setCreatingEvent(null); // Reset the creating state after completion
+      setCreatingEvent(null);
     }
   };
 
-  // Toggles the expanded state of an event card
   const toggleExpand = (eventId) => {
     setExpandedEvents((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(eventId)) {
-        newSet.delete(eventId); // Collapse if already expanded
+        newSet.delete(eventId);
       } else {
-        newSet.add(eventId); // Expand if collapsed
+        newSet.add(eventId);
       }
       return newSet;
     });
@@ -119,10 +117,7 @@ export default function EventList() {
     });
   };
 
-  // the event list consists of event cards, each card has a header and content
-  // the header contains the date and time of the event serving as the title/identifier
-  // the content contains a grid of fields and values, and an actions section edit/save/cancel/create
-  // the fields are the column headers from TimeEdit, and the values are the corresponding values for the event
+
   return (
     <div className="event-list">
       {events.map((event) => (
