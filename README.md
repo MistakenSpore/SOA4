@@ -8,7 +8,7 @@
 
 > npm install
 
-# Starta client och server samtidigt genom att köra följande kommandon:
+# Starta client och server samtidigt genom att köra följande kommando:
 
 > npm run dev
 
